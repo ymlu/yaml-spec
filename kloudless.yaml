@@ -102,3 +102,146 @@ openapi:
           format: int32
         message:
           type: string
+features:
+  needs_pre_auth: not-required
+  needs_post_auth: not-required
+  needs_admin_pre_auth: not-required
+  needs_admin_post_auth: not-required
+  needs_developer_pre_auth: not-required
+  can_find_recent: false
+  needs_multipart_part_hash: not-required
+  can_query_recent: false
+  needs_unique_user_defined_domain: not-required
+  needs_https_redirect_uri: not-required
+
+authentication:
+    # "handle_response" is used for specifying what to extract from auth
+    # response.
+    # "pre_auth" part is only used in pre-auth.
+    # "operation" can also be tagged. ex. "user,authMe". 'passAuth' will be
+    # used if not specified.
+    pre_auth:
+        operation: operationIdForAuth
+        instructions: |
+            This is a pre-auth page. Fill in username and password for auth.
+        fields:
+            username:
+                friendly_name: User name
+                input_type: text
+                required: true
+            password:
+                friendly_name: Password
+                input_type: password
+            custom_host:
+                friendly_name: Host Address
+                input_type: text
+            custom_key:
+                friendly_name: Custom Key
+                input_type: text
+                required: false
+                rename: client_id
+            custom_secret:
+                friendly_name: Custom Secret
+                input_type: password
+                required: false
+                rename: client_secret
+            option1:
+                friendly_name: Option one
+                input_type: checkbox
+                required: false
+            option2:
+                friendly_name: Option two
+                input_type: checkbox
+                required: false
+            grant_type:
+                type: string
+                value: password
+            platform:
+                type: string
+                value: kloudless_api
+        headers:
+            {}
+    handle_response:
+        description: |
+            Strongly recommended to have code here specifying how to handle
+            response data. The default behaviour only saves username and
+            password.
+        code: |
+            function (token_data, context) {
+              // to_context means setting this value to interface client as
+              // an attribute. Some can be later passed to endpoint code as
+              // context.
+              return {
+                data: {
+                  access_token: {
+                    value: token_data.access_token,
+                    to_context: true
+                  },
+                  refresh_token: {
+                    value: token_data.refresh_token,
+                    to_context: true
+                  },
+                  expiry: {
+                    value: token_data.expires_in,
+                    to_context: true,
+                    post_process: 'expires_in'
+                  },
+                  refresh_token_expiry: {
+                    value: token_data.refresh_expires_in,
+                    to_context: true,
+                    post_process: 'expires_in'
+                  },
+                  extra_data: {
+                    value: {
+                      token_type: token_data.token_type
+                    }
+                  }
+                }
+              }
+            }
+
+endpoints:
+    account_info:
+        # required
+        operation: getAccount
+        parameters:
+            fields:
+                type: string
+                value: user
+        headers:
+            {}
+        response:
+            _:
+                source: user
+                type: account
+objects:
+  common_deserializer:
+    id: id
+    name: name
+    description: description
+    modifiedTime:
+        key: modified
+        value: !lambda |
+            lambda x: ts.to_unix(ts.parse_string(x))
+    createdTime:
+        key: created
+        value: !lambda |
+            lambda x: ts.to_unix(ts.parse_string(x))
+
+  object_definitions:
+      file:
+          deserializers:
+              mimeType:
+                  key: type
+                  value: !lambda |
+                      lambda x: 'folder' if x == 'application/vnd.google-apps.folder' else 'file'
+      filesPage:
+          deserializers:
+              nextPageToken: next_page
+      account:
+          deserializers:
+              emailAddress: account_name
+              permissionId: account_id
+
+  mapping: {}
+
