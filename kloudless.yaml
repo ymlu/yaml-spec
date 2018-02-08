@@ -221,20 +221,14 @@ objects:
     description: description
     modifiedTime:
         key: modified
-        value: !lambda |
-            lambda x: ts.to_unix(ts.parse_string(x))
     createdTime:
         key: created
-        value: !lambda |
-            lambda x: ts.to_unix(ts.parse_string(x))
 
   object_definitions:
       file:
           deserializers:
               mimeType:
                   key: type
-                  value: !lambda |
-                      lambda x: 'folder' if x == 'application/vnd.google-apps.folder' else 'file'
       filesPage:
           deserializers:
               nextPageToken: next_page
