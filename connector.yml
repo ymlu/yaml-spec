@@ -214,28 +214,4 @@ endpoints:
             _:
                 source: user
                 type: account
-objects:
-  common_deserializer:
-    id: id
-    name: name
-    description: description
-    modifiedTime:
-        key: modified
-    createdTime:
-        key: created
-
-  object_definitions:
-      file:
-          deserializers:
-              mimeType:
-                  key: type
-      filesPage:
-          deserializers:
-              nextPageToken: next_page
-      account:
-          deserializers:
-              emailAddress: account_name
-              permissionId: account_id
-
-  mapping: {}
-
+objects: 'derp/objects.yml'
